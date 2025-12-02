@@ -97,6 +97,12 @@ type RunOptions struct {
 	// If nil, a new tracker is created for each execution
 	BudgetTracker *BudgetTracker `json:"-"`
 
+	// Subagent configuration (aligned with TypeScript SDK)
+	// Agents defines specialized sub-agents that can be invoked by the main agent
+	// Each agent has its own description, prompt, allowed tools, and model
+	// The main agent uses descriptions to decide which subagent to invoke
+	Agents map[string]*SubagentConfig `json:"-"`
+
 	// Parsed tool permissions (computed from AllowedTools/DisallowedTools)
 	// This field is populated automatically and should not be set directly
 	ParsedAllowedTools    []ToolPermission `json:"-"`
@@ -246,6 +252,18 @@ func PreprocessOptions(opts *RunOptions) error {
 	if opts.ResumeID != "" {
 		if !isValidSessionID(opts.ResumeID) {
 			return NewValidationError("Invalid session ID format", "ResumeID", opts.ResumeID)
+		}
+	}
+
+	// Validate subagent configurations
+	if len(opts.Agents) > 0 {
+		for name, agent := range opts.Agents {
+			if agent == nil {
+				return NewValidationError("Subagent config cannot be nil", "Agents", name)
+			}
+			if err := agent.Validate(); err != nil {
+				return NewValidationError(fmt.Sprintf("Invalid subagent '%s': %v", name, err), "Agents", name)
+			}
 		}
 	}
 
