@@ -7,7 +7,6 @@ import (
 )
 
 // SubagentConfig defines a specialized sub-agent configuration
-// This aligns with the TypeScript SDK's agents option
 type SubagentConfig struct {
 	// Description explains when to use this agent
 	// The main agent uses this to decide which subagent to invoke

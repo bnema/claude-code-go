@@ -81,7 +81,6 @@ type RunOptions struct {
 	// Theme specifies the UI theme
 	Theme string
 
-	// Permission control options (aligned with TypeScript SDK)
 	// PermissionMode controls default permission handling
 	// "default" - standard checks, "acceptEdits" - auto-approve edits, "bypassPermissions" - skip all
 	PermissionMode PermissionMode
@@ -89,7 +88,6 @@ type RunOptions struct {
 	// If nil, default behavior based on PermissionMode is used
 	PermissionCallback PermissionCallback `json:"-"`
 
-	// Budget control options (aligned with TypeScript SDK)
 	// MaxBudgetUSD sets the maximum spending limit in USD
 	// Execution stops if this limit is exceeded
 	MaxBudgetUSD float64
@@ -97,7 +95,6 @@ type RunOptions struct {
 	// If nil, a new tracker is created for each execution
 	BudgetTracker *BudgetTracker `json:"-"`
 
-	// Subagent configuration (aligned with TypeScript SDK)
 	// Agents defines specialized sub-agents that can be invoked by the main agent
 	// Each agent has its own description, prompt, allowed tools, and model
 	// The main agent uses descriptions to decide which subagent to invoke
