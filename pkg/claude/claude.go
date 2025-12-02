@@ -81,6 +81,22 @@ type RunOptions struct {
 	// Theme specifies the UI theme
 	Theme string
 
+	// Permission control options (aligned with TypeScript SDK)
+	// PermissionMode controls default permission handling
+	// "default" - standard checks, "acceptEdits" - auto-approve edits, "bypassPermissions" - skip all
+	PermissionMode PermissionMode
+	// PermissionCallback is called before each tool use to determine permission
+	// If nil, default behavior based on PermissionMode is used
+	PermissionCallback PermissionCallback `json:"-"`
+
+	// Budget control options (aligned with TypeScript SDK)
+	// MaxBudgetUSD sets the maximum spending limit in USD
+	// Execution stops if this limit is exceeded
+	MaxBudgetUSD float64
+	// BudgetTracker tracks cumulative spending across sessions
+	// If nil, a new tracker is created for each execution
+	BudgetTracker *BudgetTracker `json:"-"`
+
 	// Parsed tool permissions (computed from AllowedTools/DisallowedTools)
 	// This field is populated automatically and should not be set directly
 	ParsedAllowedTools    []ToolPermission `json:"-"`
@@ -118,6 +134,51 @@ type Message struct {
 		Name   string `json:"name"`
 		Status string `json:"status"`
 	} `json:"mcp_servers,omitempty"`
+
+	// Tool use fields (for type="tool_use" messages)
+	ToolName  string                 `json:"tool_name,omitempty"`
+	ToolInput map[string]interface{} `json:"tool_input,omitempty"`
+	ToolID    string                 `json:"tool_id,omitempty"`
+
+	// Permission request fields (for type="permission_request" messages)
+	// These are emitted when PermissionCallback returns PermissionAsk
+	PermissionMessage string            `json:"permission_message,omitempty"`
+	PermissionResult  *PermissionResult `json:"permission_result,omitempty"`
+}
+
+// ToolUseMessage represents a tool use request from Claude
+type ToolUseMessage struct {
+	Type      string                 `json:"type"`      // Always "tool_use"
+	ToolName  string                 `json:"tool_name"` // Name of the tool being called
+	ToolID    string                 `json:"tool_id"`   // Unique ID for this tool use
+	Input     map[string]interface{} `json:"input"`     // Tool input parameters
+	SessionID string                 `json:"session_id"`
+}
+
+// ParseToolInput converts a raw tool input map to a structured ToolInput
+func ParseToolInput(raw map[string]interface{}) ToolInput {
+	input := ToolInput{Raw: raw}
+
+	if cmd, ok := raw["command"].(string); ok {
+		input.Command = cmd
+	}
+	if fp, ok := raw["file_path"].(string); ok {
+		input.FilePath = fp
+	}
+	if pat, ok := raw["pattern"].(string); ok {
+		input.Pattern = pat
+	}
+	if content, ok := raw["content"].(string); ok {
+		input.Content = content
+	}
+	if old, ok := raw["old_string"].(string); ok {
+		input.OldString = old
+	}
+	if newStr, ok := raw["new_string"].(string); ok {
+		input.NewString = newStr
+	}
+
+	return input
 }
 
 // validateMCPToolName validates that MCP tool names follow the correct pattern: mcp__<serverName>__<toolName>
