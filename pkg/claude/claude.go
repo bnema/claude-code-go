@@ -100,6 +100,10 @@ type RunOptions struct {
 	// The main agent uses descriptions to decide which subagent to invoke
 	Agents map[string]*SubagentConfig `json:"-"`
 
+	// PluginManager manages plugins that hook into the execution lifecycle
+	// Plugins can intercept tool calls, messages, and completion events
+	PluginManager *PluginManager `json:"-"`
+
 	// Parsed tool permissions (computed from AllowedTools/DisallowedTools)
 	// This field is populated automatically and should not be set directly
 	ParsedAllowedTools    []ToolPermission `json:"-"`
