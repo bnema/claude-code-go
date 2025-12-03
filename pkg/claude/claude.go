@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"os/exec"
 	"strings"
@@ -146,6 +147,11 @@ type Message struct {
 	ToolName  string                 `json:"tool_name,omitempty"`
 	ToolInput map[string]interface{} `json:"tool_input,omitempty"`
 	ToolID    string                 `json:"tool_id,omitempty"`
+
+	// Sub-agent fields (for system subtype="subagent_start"/"subagent_end")
+	AgentName   string `json:"agent_name,omitempty"`
+	AgentType   string `json:"agent_type,omitempty"`   // e.g., "Explore", "Plan", "general-purpose"
+	Description string `json:"description,omitempty"` // Task description
 
 	// Permission request fields (for type="permission_request" messages)
 	// These are emitted when PermissionCallback returns PermissionAsk
@@ -409,12 +415,23 @@ func (c *ClaudeClient) StreamPrompt(ctx context.Context, prompt string, opts *Ru
 		}
 
 		scanner := bufio.NewScanner(stdout)
+		// Increase buffer size to 10MB to handle large tool results (file contents)
+		const maxScannerBuffer = 10 * 1024 * 1024
+		scanner.Buffer(make([]byte, 64*1024), maxScannerBuffer)
+
 		for scanner.Scan() {
 			line := scanner.Text()
 
 			// Skip empty lines
 			if strings.TrimSpace(line) == "" {
 				continue
+			}
+
+			// Debug: log raw JSON (truncated for readability)
+			if len(line) > 200 {
+				log.Printf("[SDK] Raw JSON: %s...", line[:200])
+			} else {
+				log.Printf("[SDK] Raw JSON: %s", line)
 			}
 
 			var msg Message
