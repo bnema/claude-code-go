@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"os/exec"
 	"strings"
@@ -425,13 +424,6 @@ func (c *ClaudeClient) StreamPrompt(ctx context.Context, prompt string, opts *Ru
 			// Skip empty lines
 			if strings.TrimSpace(line) == "" {
 				continue
-			}
-
-			// Debug: log raw JSON (truncated for readability)
-			if len(line) > 200 {
-				log.Printf("[SDK] Raw JSON: %s...", line[:200])
-			} else {
-				log.Printf("[SDK] Raw JSON: %s", line)
 			}
 
 			var msg Message
